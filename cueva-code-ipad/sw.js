@@ -2,7 +2,7 @@
    Cueva Code · Service Worker
    Cache-first app shell · stale-while-revalidate dynamic
 ═══════════════════════════════════════════════════════════════ */
-const VERSION = 'cueva-code-v7.0.0';
+const VERSION = 'cueva-code-v7.1.0';
 const STATIC_CACHE = `${VERSION}-static`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;
 
@@ -114,3 +114,4 @@ self.addEventListener('message', event => {
     caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
   }
 });
+
