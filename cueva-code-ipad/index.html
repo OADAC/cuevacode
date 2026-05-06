@@ -486,6 +486,46 @@ canvas#cv{display:block;width:100%;height:100%;touch-action:none;cursor:crosshai
 
 /* Hide elements with [hidden] — sometimes overridden by display:flex */
 [hidden]{display:none !important;}
+
+/* ═══ Module catalog cards ═══ */
+.modcard{
+  background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r3);
+  padding:8px 9px;text-align:center;transition:all .15s var(--spring);
+  display:flex;flex-direction:column;gap:3px;align-items:center;
+}
+.modcard:active{transform:scale(.95);background:var(--bg4);}
+.modcard.on{border-color:var(--gold);background:var(--goldf);box-shadow:0 0 0 2px var(--goldf);}
+.modcard-mini{width:40px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;}
+.modcard-n{font-size:10px;font-weight:600;color:var(--txt);line-height:1.2;}
+.modcard-d{font-size:9px;color:var(--txt3);font-family:'DM Mono',monospace;}
+
+/* ═══ Floor row ═══ */
+.frow{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r3);
+  margin-bottom:4px;border:0.5px solid var(--line2);background:var(--bg3);
+}
+.frow.on{background:var(--bluef);border-color:var(--blues);}
+.frow .fname{font-size:12px;flex:1;}
+.frow input[type=number]{width:54px;background:var(--bg2);border:0.5px solid var(--line2);border-radius:4px;padding:3px 5px;font-size:11px;font-family:'DM Mono',monospace;color:var(--gold);}
+.frow .fico{font-size:13px;color:var(--txt3);padding:3px 6px;border-radius:4px;}
+.frow .fico:active{background:var(--bg4);}
+
+/* ═══ Chat ═══ */
+.chat-msg{padding:8px 12px;border-radius:14px;font-size:13px;line-height:1.4;max-width:85%;}
+.chat-msg.user{background:var(--blue);color:#fff;align-self:flex-end;border-bottom-right-radius:5px;}
+.chat-msg.bot{background:var(--bg3);color:var(--txt);align-self:flex-start;border:0.5px solid var(--line2);border-bottom-left-radius:5px;}
+
+/* ═══ Mode-specific tool palettes ═══ */
+.mode-design .tools-decomp{display:none;}
+.mode-decomp .tools-design{display:none;}
+
+/* AssistantPanel position */
+@media (min-width:1024px){
+  #assist-panel{position:fixed;right:0;top:calc(var(--topbar-h) + var(--safe-top));bottom:0;border-left:0.5px solid var(--line2);box-shadow:var(--shadow-lg);}
+}
+@media (max-width:1023px){
+  #assist-panel{position:fixed;right:0;top:calc(var(--topbar-h) + var(--safe-top));bottom:0;border-left:0.5px solid var(--line2);box-shadow:var(--shadow-lg);}
+}
 </style>
 </head>
 <body>
@@ -502,17 +542,44 @@ canvas#cv{display:block;width:100%;height:100%;touch-action:none;cursor:crosshai
     <div class="brand-mark">◈</div>
     <div>
       <div>CUEVA CODE</div>
-      <div class="brand-sub">Descompositor v7</div>
+      <div class="brand-sub">v7 · iPad / Mobile</div>
     </div>
   </div>
 
-  <div class="tb-group">
+  <!-- Mode switcher (Diseño / Despiece / Manager) -->
+  <div class="tb-group" id="mode-switcher">
+    <button class="tb"     id="md-design"  onclick="setMode('design')"  title="Modo Diseño"><span class="tb-icon">✎</span><span class="tb-label">Diseño</span></button>
+    <button class="tb on"  id="md-decomp"  onclick="setMode('decomp')"  title="Modo Despiece"><span class="tb-icon">▦</span><span class="tb-label">Despiece</span></button>
+    <button class="tb"     id="md-manager" onclick="setMode('manager')" title="Manager Cueva"><span class="tb-icon">⤴</span><span class="tb-label">Manager</span></button>
+  </div>
+
+  <!-- Floor selector -->
+  <div class="tb-group" id="floor-selector">
+    <select id="floor-pick" onchange="setActiveFloor(this.value)" style="background:var(--bg3);color:var(--txt);border:0.5px solid var(--line2);border-radius:var(--r3);padding:6px 10px;font-size:12px;font-family:'Syne',sans-serif;height:32px;">
+      <option value="f0">Planta 0</option>
+    </select>
+    <button class="tb" onclick="addFloor()" title="Añadir planta">＋</button>
+  </div>
+
+  <!-- Despiece tools -->
+  <div class="tb-group tools-decomp">
     <button class="tb on" id="tb-poly"  onclick="setTool('poly')"><span class="tb-icon">⬟</span><span class="tb-label">Polígono</span></button>
     <button class="tb"    id="tb-rect"  onclick="setTool('rect')"><span class="tb-icon">▭</span><span class="tb-label">Rect</span></button>
     <button class="tb"    id="tb-ell"   onclick="setTool('ell')"><span class="tb-icon">⬭</span><span class="tb-label">Elipse</span></button>
     <button class="tb"    id="tb-pen"   onclick="setTool('pen')"><span class="tb-icon">✎</span><span class="tb-label">Pincel</span></button>
     <button class="tb red" id="tb-hole" onclick="setTool('hole')"><span class="tb-icon">⊙</span><span class="tb-label">Hueco</span></button>
     <button class="tb gold" id="tb-edit" onclick="setTool('edit')"><span class="tb-icon">✥</span><span class="tb-label">Editar</span></button>
+  </div>
+
+  <!-- Diseño tools (hidden by default) -->
+  <div class="tb-group tools-design" hidden>
+    <button class="tb"     id="tb-wall"  onclick="setTool('wall')"  title="Muro (clic inicio · clic fin)"><span class="tb-icon">▬</span><span class="tb-label">Muro</span></button>
+    <button class="tb"     id="tb-zone"  onclick="setTool('zone')"  title="Zona (polígono)"><span class="tb-icon">◻</span><span class="tb-label">Zona</span></button>
+    <button class="tb"     id="tb-door"  onclick="setTool('door')"  title="Puerta sobre muro"><span class="tb-icon">🚪</span><span class="tb-label">Puerta</span></button>
+    <button class="tb"     id="tb-window" onclick="setTool('window')" title="Ventana sobre muro"><span class="tb-icon">⊟</span><span class="tb-label">Ventana</span></button>
+    <button class="tb"     id="tb-mod"   onclick="setTool('mod')"   title="Colocar módulo"><span class="tb-icon">▥</span><span class="tb-label">Módulo</span></button>
+    <button class="tb gold" id="tb-edit2" onclick="setTool('edit')"><span class="tb-icon">✥</span><span class="tb-label">Editar</span></button>
+    <button class="tb red" id="tb-del"   onclick="setTool('del')"   title="Eliminar muro/zona/módulo"><span class="tb-icon">✕</span><span class="tb-label">Borrar</span></button>
   </div>
 
   <div class="tb-group">
@@ -680,6 +747,7 @@ canvas#cv{display:block;width:100%;height:100%;touch-action:none;cursor:crosshai
 
     <div class="fab-stack">
       <button class="fab fab-sm blue" onclick="toggleRPanel()" title="Panel">⋯</button>
+      <button class="fab fab-sm green" onclick="toggleAssist()" title="Asistente Cueva">🤖</button>
       <button class="fab" onclick="openExport()" title="Exportar">↓</button>
     </div>
 
@@ -701,6 +769,11 @@ canvas#cv{display:block;width:100%;height:100%;touch-action:none;cursor:crosshai
       <div class="rtab on" id="rt-seq"     onclick="showRTab('seq')">Secuencia</div>
       <div class="rtab"    id="rt-review"  onclick="showRTab('review')">Revisión</div>
       <div class="rtab"    id="rt-piece"   onclick="showRTab('piece')">Pieza</div>
+      <div class="rtab"    id="rt-struct"  onclick="showRTab('struct')">Estructura</div>
+      <div class="rtab"    id="rt-mesh"    onclick="showRTab('mesh')">Malla</div>
+      <div class="rtab"    id="rt-mods"    onclick="showRTab('mods')">Módulos</div>
+      <div class="rtab"    id="rt-budget"  onclick="showRTab('budget')">Presupuesto</div>
+      <div class="rtab"    id="rt-3d"      onclick="showRTab('3d')">3D</div>
       <div class="rtab"    id="rt-algo"    onclick="showRTab('algo')">Algoritmo</div>
       <div class="rtab"    id="rt-proj"    onclick="showRTab('proj')">Proyecto</div>
     </div>
@@ -749,7 +822,128 @@ canvas#cv{display:block;width:100%;height:100%;touch-action:none;cursor:crosshai
       </div>
     </div>
 
+    <!-- Estructura tab -->
+    <div class="rbody" id="rb-struct" hidden>
+      <div class="sec" style="padding:0 0 12px;border:none">
+        <h3>Retícula estructural</h3>
+        <div class="row"><label>Activar</label><input type="checkbox" id="st-on" onchange="onStructToggle()"></div>
+        <div class="row"><label>Pilares X</label><input type="number" id="st-gx" min="2" max="20" value="6" oninput="onStructChange()"></div>
+        <div class="row"><label>Pilares Y</label><input type="number" id="st-gy" min="2" max="20" value="6" oninput="onStructChange()"></div>
+        <div class="row"><label>Pilar (cm)</label><input type="number" id="st-ps" min="20" max="80" step="5" value="30" oninput="onStructChange()"></div>
+      </div>
+      <div class="sec" style="padding:0 0 12px;border:none">
+        <h3>Vigas detectadas</h3>
+        <div id="st-info" style="font-size:11px;color:var(--txt2);font-family:'DM Mono',monospace;line-height:1.6">Activa la retícula para calcular</div>
+      </div>
+    </div>
+
+    <!-- Malla tab -->
+    <div class="rbody" id="rb-mesh" hidden>
+      <div class="sec" style="padding:0 0 12px;border:none">
+        <h3>Malla complementaria</h3>
+        <div class="row"><label>Activar</label><input type="checkbox" id="me-on" onchange="onMeshToggle()"></div>
+        <div class="row"><label>Tipo</label>
+          <select id="me-kind" onchange="onMeshChange()">
+            <option value="square">Cuadrada</option>
+            <option value="hex">Hexagonal</option>
+          </select>
+        </div>
+        <div class="row"><label>Tamaño (m)</label><input type="number" id="me-size" min="0.5" max="6" step="0.25" value="1.5" oninput="onMeshChange()"></div>
+      </div>
+      <div class="sec" style="padding:0;border:none">
+        <h3>Estado</h3>
+        <div id="me-info" style="font-size:11px;color:var(--txt2);font-family:'DM Mono',monospace">Off</div>
+      </div>
+    </div>
+
+    <!-- Módulos tab -->
+    <div class="rbody" id="rb-mods" hidden>
+      <div class="sec" style="padding:0 0 10px;border:none">
+        <h3>Catálogo Edro</h3>
+        <div class="row"><label>Filtro</label>
+          <select id="mod-filter" onchange="renderModuleCatalog()">
+            <option value="all">Todos</option>
+            <option value="Cocinas">Cocinas</option>
+            <option value="Baño">Baño</option>
+            <option value="Dormitorios">Dormitorios</option>
+            <option value="Salón">Salón</option>
+            <option value="Pasillo">Pasillo / Escalera</option>
+            <option value="furn">Mobiliario</option>
+          </select>
+        </div>
+        <div style="font-size:10px;color:var(--txt3);margin:4px 0 8px;font-family:'DM Mono',monospace">
+          Toca un módulo → toca el lienzo para colocarlo
+        </div>
+        <div id="mod-catalog" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
+      </div>
+      <div class="sec" style="padding:8px 0 0;border:none">
+        <h3>Colocados (<span id="mod-count">0</span>)</h3>
+        <div id="mod-placed-list" style="font-size:11px;font-family:'DM Mono',monospace"></div>
+      </div>
+    </div>
+
+    <!-- Presupuesto tab -->
+    <div class="rbody" id="rb-budget" hidden>
+      <div class="sec" style="padding:0 0 12px;border:none">
+        <h3>Presupuesto</h3>
+        <div class="row"><label>€/m² acabado</label><input type="number" id="bud-rate" min="100" max="5000" step="50" value="850" oninput="updateBudget()"></div>
+        <div class="row"><label>kg acero/m²</label><input type="number" id="bud-kg" min="1" max="20" step="0.25" value="6.25" oninput="updateBudget()"></div>
+        <div class="row"><label>€/kg acero</label><input type="number" id="bud-skg" min="0.5" max="20" step="0.1" value="2.5" oninput="updateBudget()"></div>
+      </div>
+      <div class="sec" style="padding:0 0 14px;border:none">
+        <div class="stat-grid">
+          <div class="stat std"><div class="stat-n" id="b-area">—</div><div class="stat-l">m² total</div></div>
+          <div class="stat blk"><div class="stat-n" id="b-pcs">—</div><div class="stat-l">piezas</div></div>
+          <div class="stat spc"><div class="stat-n" id="b-kg">—</div><div class="stat-l">kg acero</div></div>
+          <div class="stat exc"><div class="stat-n" id="b-eur">—</div><div class="stat-l">€ total</div></div>
+        </div>
+        <div class="total-badge" id="b-total">—</div>
+      </div>
+      <div class="sec" style="padding:0 0 12px;border:none">
+        <h3>Desglose por tipo</h3>
+        <div id="b-detail" style="font-size:11px;color:var(--txt2);font-family:'DM Mono',monospace;line-height:1.7">—</div>
+      </div>
+      <div class="sec" style="padding:0;border:none">
+        <h3>Exportar</h3>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <button class="btn gold" onclick="exportCSV()">↓ CSV (Manager Cueva)</button>
+          <button class="btn ghost" onclick="exportBudgetTXT()">↓ Informe TXT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D viewer tab -->
+    <div class="rbody" id="rb-3d" hidden>
+      <div class="sec" style="padding:0 0 8px;border:none">
+        <h3>Vista 3D</h3>
+        <div class="row"><label>Modo</label>
+          <select id="v3-mode" onchange="render3D()">
+            <option value="iso">Isométrica</option>
+            <option value="top">Cenital</option>
+            <option value="front">Frontal</option>
+          </select>
+        </div>
+        <div class="row"><label>Cota total (m)</label><input type="number" id="v3-h" value="3" min="0.5" max="50" step="0.5" oninput="render3D()"></div>
+      </div>
+      <canvas id="cv3d" width="280" height="280" style="width:100%;border-radius:var(--r);background:var(--bg3);border:0.5px solid var(--line2)"></canvas>
+      <div style="font-size:10px;color:var(--txt3);text-align:center;margin-top:6px;font-family:'DM Mono',monospace">
+        Pellizca para zoom · arrastra para rotar
+      </div>
+    </div>
+
     <div class="rbody" id="rb-algo" hidden>
+      <div class="sec" style="padding:0 0 10px;border:none">
+        <h3>Algoritmo de despiece</h3>
+        <div class="row"><label>Modo</label>
+          <select id="algo-pick" onchange="setAlgo(this.value)">
+            <option value="maxStandard">Máx. estándar (default)</option>
+            <option value="strips">Tiras horizontales</option>
+            <option value="balanced">Equilibrado</option>
+            <option value="compact">Compacto</option>
+          </select>
+        </div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:4px;font-family:'DM Mono',monospace" id="algo-desc">Maximiza piezas J grandes (J10/J8/J6)</div>
+      </div>
       <div class="algo" id="algo-txt">—</div>
     </div>
 
@@ -764,8 +958,35 @@ canvas#cv{display:block;width:100%;height:100%;touch-action:none;cursor:crosshai
             <option value="tabique">Tabique</option>
             <option value="roof">Cubierta</option>
             <option value="structural">Estructural</option>
+            <option value="camara">Cámara</option>
           </select>
         </div>
+      </div>
+
+      <!-- Plantas -->
+      <div class="sec" style="padding:0 0 14px;border:none">
+        <h3>Plantas</h3>
+        <div id="floors-list" style="font-size:11px"></div>
+        <button class="btn ghost" style="margin-top:6px;width:100%" onclick="addFloor()">+ Nueva planta</button>
+      </div>
+
+      <!-- Modo Generativo -->
+      <div class="sec" style="padding:0 0 14px;border:none">
+        <h3>Modo Generativo</h3>
+        <div class="row"><label>Tipología</label>
+          <select id="gen-tipo">
+            <option value="vivienda">Vivienda</option>
+            <option value="oficina">Oficina</option>
+            <option value="local">Local Comercial</option>
+            <option value="residencial">Residencial Multi</option>
+          </select>
+        </div>
+        <div class="row"><label>m² aprox</label><input type="number" id="gen-m2" min="40" max="500" step="10" value="100"></div>
+        <div class="row"><label>Dormitorios</label><input type="number" id="gen-beds" min="0" max="6" value="2"></div>
+        <div class="row"><label>Baños</label><input type="number" id="gen-baths" min="1" max="4" value="1"></div>
+        <div class="row"><label>Plantas</label><input type="number" id="gen-floors" min="1" max="5" value="1"></div>
+        <button class="btn green" style="width:100%;margin-top:6px" onclick="runGenerative()">⚡ Generar capa</button>
+        <div style="font-size:10px;color:var(--txt3);margin-top:5px;font-family:'DM Mono',monospace" id="gen-status">—</div>
       </div>
       <div class="sec" style="padding:0 0 14px;border:none">
         <h3>Persistencia</h3>
@@ -815,6 +1036,67 @@ canvas#cv{display:block;width:100%;height:100%;touch-action:none;cursor:crosshai
 </div><!-- shell -->
 </div><!-- app -->
 
+<!-- Manager sheet -->
+<div class="sheet" id="sheet-manager">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title">⤴ Manager Cueva — Sincronizar piezas</span>
+    <button class="sheet-close" onclick="closeAllPanels()">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="sec" style="padding:0 0 14px;border:none">
+      <h3>1 · Servidor</h3>
+      <div class="row"><label>URL Manager</label><input type="text" id="mg-url" value="http://46.62.160.14.sslip.io" style="flex:1;min-width:0;background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r3);padding:6px 8px;font-size:11px;color:var(--txt);font-family:'DM Mono',monospace"></div>
+      <div id="mg-conn" style="font-size:10px;color:var(--txt3);margin-top:5px;font-family:'DM Mono',monospace">No conectado</div>
+    </div>
+    <div class="sec" style="padding:0 0 14px;border:none">
+      <h3>2 · Autenticación</h3>
+      <div class="row"><label>Email</label><input type="email" id="mg-email" placeholder="usuario@cueva.com" style="flex:1;min-width:0;background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r3);padding:6px 8px;font-size:12px"></div>
+      <div class="row"><label>Contraseña</label><input type="password" id="mg-pass" placeholder="••••••••" style="flex:1;min-width:0;background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r3);padding:6px 8px;font-size:12px"></div>
+      <button class="btn blue" style="margin-top:6px;width:100%" onclick="mgrLogin()">🔑 Iniciar sesión</button>
+      <div id="mg-auth" style="font-size:10px;color:var(--txt3);margin-top:5px;font-family:'DM Mono',monospace">—</div>
+    </div>
+    <div class="sec" style="padding:0 0 14px;border:none">
+      <h3>3 · Partner / Proyecto / Construcción</h3>
+      <div class="row"><label>Nombre proyecto</label><input type="text" id="mg-proj" placeholder="Casa García" style="flex:1;min-width:0;background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r3);padding:6px 8px;font-size:12px"></div>
+      <div class="row"><label>Tipología</label>
+        <select id="mg-tipo">
+          <option value="residencial">Residencial</option><option value="oficina">Oficina</option>
+          <option value="local">Local</option><option value="industrial">Industrial</option>
+        </select>
+      </div>
+      <button class="btn ghost" style="margin-top:6px;width:100%" onclick="mgrCreateProject()">📁 Crear proyecto + construcción</button>
+      <div id="mg-proj-st" style="font-size:10px;color:var(--txt3);margin-top:5px;font-family:'DM Mono',monospace">—</div>
+    </div>
+    <div class="sec" style="padding:0 0 14px;border:none">
+      <h3>4 · Sincronizar piezas</h3>
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:6px;line-height:1.4">
+        Envía todas las piezas del despiece actual a <code>POST /api/piezas/bulk</code>.
+      </div>
+      <button class="btn green" style="width:100%" onclick="mgrSyncPieces()">⤴ Sincronizar (<span id="mg-pcs-count">0</span> piezas)</button>
+      <div id="mg-sync-st" style="font-size:10px;color:var(--txt3);margin-top:5px;font-family:'DM Mono',monospace">—</div>
+    </div>
+    <div class="sec" style="padding:0;border:none">
+      <h3>Notas</h3>
+      <div style="font-size:10px;color:var(--txt3);font-family:'DM Mono',monospace;line-height:1.6">
+        · Token JWT se guarda en <code>localStorage['cueva-token']</code><br>
+        · El Manager debe permitir CORS para el origen de esta PWA<br>
+        · El backend espera <code>categoria</code>: ESTANDAR/BORDE/ESPECIAL/ESTRUCTURA/MODULO
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AssistantPanel (slide-over right side, chat-style) -->
+<aside class="rpanel" id="assist-panel" style="z-index:140;width:340px;max-width:90vw;display:none;flex-direction:column">
+  <div class="rtabs"><div class="rtab on" style="flex:1">🤖 Asistente Cueva</div><button class="sheet-close" style="margin:6px 8px" onclick="toggleAssist()">✕</button></div>
+  <div id="chat-log" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch"></div>
+  <div style="padding:10px;border-top:0.5px solid var(--line2);display:flex;gap:6px;align-items:center;">
+    <input type="text" id="chat-input" placeholder="Pregunta al asistente Cueva…" style="flex:1;background:var(--bg3);border:0.5px solid var(--line2);border-radius:var(--r);padding:9px 12px;font-size:12px;color:var(--txt);font-family:inherit" onkeydown="if(event.key==='Enter')chatSend()">
+    <button class="btn blue" style="flex:0 0 auto;padding:8px 14px" onclick="chatSend()">↑</button>
+  </div>
+</aside>
+
 <!-- Overlays -->
 <div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
 
@@ -862,8 +1144,81 @@ window.addEventListener('orientationchange',()=>{clearTimeout(_resizeT);_resizeT
 const LCOLS=['#2d6fa8','#8a6d3b','#c87a3a','#2e7d4f','#7a4d8a','#c8324a','#2e7d7d','#5a4d8a'];
 const J_ST=['#2d6fa8','#7a4d8a','#2e7d4f','#c87a3a','#c8324a','#6a8a2a','#2e7d7d','#a06a4a'];
 const J_FL=J_ST.map(c=>c+'22');
-const LAYER_TYPES={floor:'Forjado',facade:'Fachada',tabique:'Tabique',roof:'Cubierta',structural:'Estructural'};
-const LAYER_TYPE_BADGE={floor:'FRJ',facade:'FCH',tabique:'TBQ',roof:'CBT',structural:'EST'};
+const LAYER_TYPES={floor:'Forjado',facade:'Fachada',tabique:'Tabique',roof:'Cubierta',structural:'Estructural',camara:'Cámara'};
+const LAYER_TYPE_BADGE={floor:'FRJ',facade:'FCH',tabique:'TBQ',roof:'CBT',structural:'EST',camara:'CMR'};
+
+/* ═══ Cueva Code · Catálogo Edro ═══ */
+// Unidad base de retícula G = 0.75m
+const G_BASE = 0.75;
+// Piezas estándar (J1..J10)
+const EDRO_STD = [
+  { id:'J10', w:7.5, h:3,    cw:5, ch:2, c:'#7c3aed' },
+  { id:'J8',  w:6,   h:3,    cw:4, ch:2, c:'#2563eb' },
+  { id:'J6',  w:4.5, h:3,    cw:3, ch:2, c:'#0891b2' },
+  { id:'J4',  w:3,   h:3,    cw:2, ch:2, c:'#059669' },
+  { id:'J2',  w:3,   h:1.5,  cw:2, ch:1, c:'#e94560' },
+  { id:'J1',  w:1.5, h:1.5,  cw:1, ch:1, c:'#f59e0b' },
+];
+// Piezas especiales (recortes derivados)
+const EDRO_SPE = [
+  { id:'J10/2.25', w:7.5, h:2.25, c:'#7c3aed' }, { id:'J10/1.5',  w:7.5, h:1.5,  c:'#7c3aed' }, { id:'J10/0.75', w:7.5, h:0.75, c:'#7c3aed' },
+  { id:'J8/2.25',  w:6,   h:2.25, c:'#2563eb' }, { id:'J8/1.5',   w:6,   h:1.5,  c:'#2563eb' }, { id:'J8/0.75',  w:6,   h:0.75, c:'#2563eb' },
+  { id:'J6/2.25',  w:4.5, h:2.25, c:'#0891b2' }, { id:'J6/1.5',   w:4.5, h:1.5,  c:'#0891b2' }, { id:'J6/0.75',  w:4.5, h:0.75, c:'#0891b2' },
+  { id:'J4/2.25',  w:3,   h:2.25, c:'#059669' }, { id:'J4/0.75',  w:3,   h:0.75, c:'#059669' },
+  { id:'J2/0.75',  w:3,   h:0.75, c:'#e94560' }, { id:'J1/0.75',  w:1.5, h:0.75, c:'#f59e0b' },
+];
+// Módulos Edro (cocinas, baños, dormitorios, salones, pasillos)
+const EDRO_MODS = [
+  { cat:'Cocinas',     n:'Cocina Abierta',     w:3,    h:1.5,   c:'#ef4444' },
+  { cat:'Cocinas',     n:'Cocina Enfrentada',  w:3,    h:2.25,  c:'#dc2626' },
+  { cat:'Cocinas',     n:'Isla Abierta',       w:3,    h:3.75,  c:'#b91c1c' },
+  { cat:'Cocinas',     n:'Isla Banco',         w:3,    h:3,     c:'#991b1b' },
+  { cat:'Baño',        n:'Aseo Mínimo',        w:1.5,  h:1.5,   c:'#3b82f6' },
+  { cat:'Baño',        n:'Baño Basic',         w:3,    h:1.5,   c:'#2563eb' },
+  { cat:'Baño',        n:'Baño Bañera',        w:3,    h:2.25,  c:'#1d4ed8' },
+  { cat:'Baño',        n:'Núcleo Baños',       w:4.5,  h:3,     c:'#1e40af' },
+  { cat:'Dormitorios', n:'Dorm. Mínimo',       w:3.75, h:2.25,  c:'#8b5cf6' },
+  { cat:'Dormitorios', n:'Dorm. Doble',        w:3.75, h:3,     c:'#7c3aed' },
+  { cat:'Dormitorios', n:'Dorm.+Vestidor',     w:6,    h:3,     c:'#6d28d9' },
+  { cat:'Dormitorios', n:'Dorm.+Vest.+Isla',   w:7.5,  h:3,     c:'#5b21b6' },
+  { cat:'Dormitorios', n:'Vestidor',           w:1.5,  h:3,     c:'#c4b5fd' },
+  { cat:'Salón',       n:'Salón Mínimo',       w:3,    h:3.75,  c:'#10b981' },
+  { cat:'Salón',       n:'Salón Basic',        w:3,    h:4.5,   c:'#059669' },
+  { cat:'Salón',       n:'Salón Amplio',       w:6,    h:3,     c:'#047857' },
+  { cat:'Salón',       n:'Salón Amplio+',      w:6,    h:3.75,  c:'#065f46' },
+  { cat:'Pasillo',     n:'Pasillo 1m',         w:3,    h:1,     c:'#9ca3af' },
+  { cat:'Pasillo',     n:'Pasillo 1.5m',       w:3,    h:1.5,   c:'#6b7280' },
+  { cat:'Pasillo',     n:'Pasillo 3m',         w:3,    h:3,     c:'#4b5563' },
+  { cat:'Pasillo',     n:'Escalera Doble',     w:3,    h:3,     c:'#374151' },
+  { cat:'Pasillo',     n:'Escalera Recta',     w:6,    h:3,     c:'#1f2937' },
+];
+// Mobiliario a escala (m)
+const EDRO_FURN = [
+  { cat:'Camas', n:'Cama 90',         w:0.90, h:2.00, c:'#a78bfa', icon:'🛏' },
+  { cat:'Camas', n:'Cama 135',        w:1.35, h:2.00, c:'#8b5cf6', icon:'🛏' },
+  { cat:'Camas', n:'Cama 150',        w:1.50, h:2.00, c:'#7c3aed', icon:'🛏' },
+  { cat:'Camas', n:'Cama 180',        w:1.80, h:2.00, c:'#6d28d9', icon:'🛏' },
+  { cat:'Sofás', n:'Sofá 2p',         w:1.50, h:0.85, c:'#34d399', icon:'🛋' },
+  { cat:'Sofás', n:'Sofá 3p',         w:2.10, h:0.85, c:'#10b981', icon:'🛋' },
+  { cat:'Sofás', n:'Sofá L',          w:2.60, h:1.60, c:'#059669', icon:'🛋' },
+  { cat:'Mesas', n:'Mesa comedor 4p', w:0.80, h:1.50, c:'#fbbf24', icon:'⬜' },
+  { cat:'Mesas', n:'Mesa comedor 6p', w:0.90, h:2.00, c:'#f59e0b', icon:'⬜' },
+  { cat:'Mesas', n:'Escritorio',      w:0.70, h:1.50, c:'#fed7aa', icon:'⬜' },
+  { cat:'Baño',  n:'Inodoro',         w:0.36, h:0.60, c:'#bae6fd', icon:'🚽' },
+  { cat:'Baño',  n:'Lavabo 80',       w:0.80, h:0.50, c:'#38bdf8', icon:'🚿' },
+  { cat:'Baño',  n:'Ducha 80',        w:0.80, h:0.80, c:'#0284c7', icon:'🚿' },
+  { cat:'Baño',  n:'Bañera 170',      w:0.70, h:1.70, c:'#075985', icon:'🛁' },
+  { cat:'Cocina',n:'Frigorífico',     w:0.60, h:0.65, c:'#d1d5db', icon:'❄' },
+  { cat:'Cocina',n:'Lavadora',        w:0.60, h:0.60, c:'#e5e7eb', icon:'🌀' },
+  { cat:'Cocina',n:'Horno',           w:0.60, h:0.60, c:'#9ca3af', icon:'⬛' },
+  { cat:'Cocina',n:'Encimera',        w:0.60, h:2.40, c:'#e7e5e4', icon:'⬛' },
+];
+const TIPOLOGIAS = [
+  {id:'vivienda',  n:'Vivienda'},
+  {id:'oficina',   n:'Oficina'},
+  {id:'local',     n:'Local Comercial'},
+  {id:'residencial',n:'Residencial Multi-Vivienda'},
+];
 
 /* ═══ State ═══ */
 let layers=[],activeIdx=0,tool='poly',mark='std';
@@ -879,6 +1234,23 @@ let undoStack=[],redoStack=[];
 const UNDO_MAX=50;
 let _ctxCell=null;
 let deferredInstall=null;
+
+/* ═══ State: Cueva Code (modos / plantas / módulos) ═══ */
+let mode='decomp';                       // 'design' | 'decomp' | 'manager'
+let floors=[                             // multi-planta
+  {id:'f0',name:'Planta 0',elevation:0,height:3}
+];
+let activeFloor='f0';
+let modulesPlaced=[];                    // [{id,name,x,y,w,h,c,rot,floorId}]
+let walls=[];                            // [{id,x1,y1,x2,y2,thick,height,floorId}]
+let zonesP=[];                           // [{id,pts:[],label,c,floorId}]
+let openings=[];                         // [{id,wallId,t:0..1,kind:'door'|'window',w:0.9,h:2.1}]
+let structure={enabled:false,gridX:6,gridY:6,pillarSize:0.3};
+let meshConf={enabled:false,kind:'square',size:1.5};
+let algoMode='maxStandard';              // 'maxStandard' | 'strips' | 'balanced' | 'compact'
+let pricePerM2=850;                      // €/m² estimado (configurable)
+let mgr={token:null,partnerId:null,projectId:null,construccionId:null,base:'http://46.62.160.14.sslip.io'};
+let _moduleToPlace=null;                 // pending module to place by tap
 
 /* ═══ Pointer state ═══ */
 const pointers=new Map(); // pointerId -> {x,y,wx,wy,startX,startY,type,pressure}
@@ -2367,14 +2739,944 @@ if('serviceWorker'in navigator){
 window.addEventListener('online',()=>setStatus('● Conectado'));
 window.addEventListener('offline',()=>setStatus('◌ Modo offline'));
 
+/* ═══════════════════════════════════════════════════════════
+   CUEVA CODE · MODOS / PLANTAS / DISEÑO / ESTRUCTURA / MÓDULOS / 3D / MANAGER
+═══════════════════════════════════════════════════════════════ */
+
+/* ═══ Modo: Diseño / Despiece / Manager ═══ */
+function setMode(m){
+  mode=m;
+  document.body.classList.remove('mode-design','mode-decomp','mode-manager');
+  document.body.classList.add('mode-'+m);
+  ['design','decomp','manager'].forEach(k=>{
+    const b=$('md-'+k);if(b)b.classList.toggle('on',k===m);
+  });
+  // Show/hide tool palettes
+  document.querySelectorAll('.tools-decomp').forEach(el=>el.hidden=(m!=='decomp'));
+  document.querySelectorAll('.tools-design').forEach(el=>el.hidden=(m!=='design'));
+  if(m==='design'){
+    setTool('wall');
+    setStatus('Modo Diseño · Dibuja muros, zonas y módulos');
+  } else if(m==='decomp'){
+    setTool('poly');
+    setStatus('Modo Despiece · Define silueta y unifica con J');
+  } else if(m==='manager'){
+    closeAllPanels();
+    $('sheet-manager').classList.add('open');
+    $('overlay').classList.add('show');
+    setStatus('Manager Cueva · Sincroniza piezas con backend');
+    refreshMgrSheet();
+  }
+  render();
+}
+
+/* ═══ Plantas (Floors) ═══ */
+function addFloor(){
+  pushUndo();
+  const n=floors.length;
+  const id='f'+Date.now();
+  const elev=floors.reduce((s,f)=>s+f.height,0);
+  floors.push({id,name:`Planta ${n}`,elevation:elev,height:3});
+  activeFloor=id;
+  renderFloors();renderFloorPicker();setStatus('Planta añadida');
+}
+function setActiveFloor(id){
+  activeFloor=id;
+  renderFloors();renderFloorPicker();
+  // Filter visible layers to those of this floor
+  recompute();
+  setStatus('Planta activa: '+floors.find(f=>f.id===id)?.name);
+}
+function removeFloor(id){
+  if(floors.length<=1){setStatus('Necesitas al menos 1 planta');return;}
+  pushUndo();
+  floors=floors.filter(f=>f.id!==id);
+  if(activeFloor===id)activeFloor=floors[0].id;
+  // Remove layers of that floor
+  layers=layers.filter(l=>l.floorId!==id);
+  modulesPlaced=modulesPlaced.filter(m=>m.floorId!==id);
+  walls=walls.filter(w=>w.floorId!==id);
+  zonesP=zonesP.filter(z=>z.floorId!==id);
+  if(layers.length===0)layers.push(newLayer('Silueta 1','floor'));
+  activeIdx=Math.min(activeIdx,layers.length-1);
+  renderFloors();renderFloorPicker();renderLayerList();recompute();
+}
+function renderFloors(){
+  const el=$('floors-list');if(!el)return;el.innerHTML='';
+  floors.forEach(f=>{
+    const d=document.createElement('div');d.className='frow'+(f.id===activeFloor?' on':'');
+    d.innerHTML=`<span class="fname">${escapeHtml(f.name)}</span>
+      <span style="font-size:9px;color:var(--txt3);font-family:'DM Mono',monospace">cota</span>
+      <input type="number" data-act="elev" value="${f.elevation}" step="0.5" min="-10" max="100">
+      <span style="font-size:9px;color:var(--txt3);font-family:'DM Mono',monospace">h</span>
+      <input type="number" data-act="height" value="${f.height}" step="0.1" min="2" max="6">
+      <span class="fico" data-act="select">●</span>
+      <span class="fico" data-act="del" style="color:var(--red)">✕</span>`;
+    d.querySelectorAll('input').forEach(inp=>{
+      inp.onchange=e=>{e.stopPropagation();const v=+inp.value;if(inp.dataset.act==='elev')f.elevation=v;else f.height=v;render();render3D&&render3D();};
+    });
+    d.querySelectorAll('[data-act]').forEach(a=>{
+      a.onclick=e=>{
+        e.stopPropagation();
+        if(a.dataset.act==='select')setActiveFloor(f.id);
+        else if(a.dataset.act==='del')removeFloor(f.id);
+      };
+    });
+    el.appendChild(d);
+  });
+}
+function renderFloorPicker(){
+  const sel=$('floor-pick');if(!sel)return;
+  sel.innerHTML='';
+  floors.forEach(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.name;if(f.id===activeFloor)o.selected=true;sel.appendChild(o);});
+}
+
+/* ═══ Layer extension: floorId ═══ */
+const _origNewLayer=newLayer;
+function newLayerCueva(name,type='floor'){
+  const l=_origNewLayer(name,type);
+  l.floorId=activeFloor;
+  l.walls=[];l.zones=[];l.modules=[];
+  return l;
+}
+// Override
+window.newLayer=newLayerCueva;
+
+/* ═══ Diseño: Muros / Zonas / Aperturas ═══ */
+let wallStart=null,zonePts=[];
+
+// Snap a múltiplos de G_BASE en world coords reales (cm/m)
+function snapWorld(p){
+  if(!SNAP())return p;
+  const S=SZ();
+  // 1 celda = SZ() px = G_BASE m por defecto. Asumimos 1 celda = 0.75m de retícula real.
+  const g=S; // snap a la cuadrícula visible
+  return{x:Math.round(p.x/g)*g,y:Math.round(p.y/g)*g};
+}
+
+// Distancia punto a segmento
+function distSeg(px,py,x1,y1,x2,y2){
+  const dx=x2-x1,dy=y2-y1,L2=dx*dx+dy*dy;
+  if(L2===0)return Math.hypot(px-x1,py-y1);
+  let t=((px-x1)*dx+(py-y1)*dy)/L2;t=Math.max(0,Math.min(1,t));
+  return Math.hypot(px-(x1+t*dx),py-(y1+t*dy));
+}
+function findWallNear(wx,wy,thresh=14){
+  let best=null,bestD=thresh/zoom;
+  walls.forEach(w=>{
+    if(w.floorId!==activeFloor)return;
+    const d=distSeg(wx,wy,w.x1,w.y1,w.x2,w.y2);
+    if(d<bestD){bestD=d;best=w;}
+  });
+  return best;
+}
+function findModuleNear(wx,wy){
+  for(const m of modulesPlaced){
+    if(m.floorId!==activeFloor)continue;
+    const cx=m.x+m.w/2,cy=m.y+m.h/2;
+    const dx=wx-cx,dy=wy-cy;
+    const r=m.rot||0;const cos=Math.cos(-r),sin=Math.sin(-r);
+    const lx=dx*cos-dy*sin,ly=dx*sin+dy*cos;
+    if(Math.abs(lx)<=m.w/2&&Math.abs(ly)<=m.h/2)return m;
+  }
+  return null;
+}
+
+function placeWall(p1,p2){
+  if(Math.hypot(p2.x-p1.x,p2.y-p1.y)<10)return false;
+  pushUndo();
+  walls.push({id:'w'+Date.now(),x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,thick:0.15,height:3,floorId:activeFloor});
+  render();return true;
+}
+function placeZone(pts,label='Zona'){
+  if(pts.length<3)return false;
+  pushUndo();
+  zonesP.push({id:'z'+Date.now(),pts:[...pts],label,c:'rgba(45,111,168,0.10)',floorId:activeFloor});
+  render();return true;
+}
+function placeOpening(wallId,t,kind){
+  pushUndo();
+  const w=kind==='door'?0.9:1.2,h=kind==='door'?2.1:1.2;
+  openings.push({id:'o'+Date.now(),wallId,t,kind,w,h});
+  render();
+}
+function placeModuleAt(wx,wy){
+  if(!_moduleToPlace)return;
+  pushUndo();
+  const S=SZ(),rc=RC();
+  // module dims are in meters, convert to canvas px: 1 cell = SZ() px = rc cm
+  const pxPerM=SZ()*100/rc;
+  const w=_moduleToPlace.w*pxPerM,h=_moduleToPlace.h*pxPerM;
+  modulesPlaced.push({
+    id:'m'+Date.now(),
+    name:_moduleToPlace.n,cat:_moduleToPlace.cat,
+    x:wx-w/2,y:wy-h/2,w,h,c:_moduleToPlace.c,
+    rot:0,floorId:activeFloor
+  });
+  renderPlacedList();render();setStatus('Módulo "'+_moduleToPlace.n+'" colocado');
+}
+function deleteAt(wx,wy){
+  // Try wall first, then module, then zone
+  const w=findWallNear(wx,wy);
+  if(w){pushUndo();walls=walls.filter(x=>x!==w);openings=openings.filter(o=>o.wallId!==w.id);render();setStatus('Muro eliminado');return;}
+  const m=findModuleNear(wx,wy);
+  if(m){pushUndo();modulesPlaced=modulesPlaced.filter(x=>x!==m);renderPlacedList();render();setStatus('Módulo eliminado');return;}
+  const z=zonesP.find(z=>z.floorId===activeFloor&&ptInPoly(wx,wy,z.pts));
+  if(z){pushUndo();zonesP=zonesP.filter(x=>x!==z);render();setStatus('Zona eliminada');return;}
+  setStatus('Nada que borrar aquí');
+}
+
+/* ═══ Render del modo Diseño (sobre el canvas) ═══ */
+function renderDesign(){
+  const ox=OX(),oy=OY();
+  // Zonas
+  zonesP.forEach(z=>{
+    if(z.floorId!==activeFloor)return;
+    if(!z.pts||z.pts.length<3)return;
+    ctx.save();
+    ctx.fillStyle=z.c||'rgba(45,111,168,0.10)';
+    ctx.strokeStyle=isDark?'rgba(90,159,212,0.7)':'rgba(45,111,168,0.7)';
+    ctx.lineWidth=1.2/zoom;
+    ctx.setLineDash([5/zoom,3/zoom]);
+    ctx.beginPath();ctx.moveTo(z.pts[0].x,z.pts[0].y);z.pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.closePath();
+    ctx.fill();ctx.stroke();ctx.setLineDash([]);
+    // Label
+    let cx=0,cy=0;z.pts.forEach(p=>{cx+=p.x;cy+=p.y;});cx/=z.pts.length;cy/=z.pts.length;
+    ctx.fillStyle=isDark?'rgba(255,255,255,0.7)':'rgba(0,0,0,0.7)';
+    ctx.font=`600 ${Math.max(9,Math.round(11/zoom))}px 'Syne',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(z.label||'Zona',cx,cy);
+    ctx.restore();
+  });
+  // Módulos
+  modulesPlaced.forEach(m=>{
+    if(m.floorId!==activeFloor)return;
+    ctx.save();
+    ctx.translate(m.x+m.w/2,m.y+m.h/2);
+    ctx.rotate(m.rot||0);
+    ctx.fillStyle=m.c+'aa';
+    ctx.fillRect(-m.w/2,-m.h/2,m.w,m.h);
+    ctx.strokeStyle=m.c;ctx.lineWidth=1.5/zoom;
+    ctx.strokeRect(-m.w/2,-m.h/2,m.w,m.h);
+    ctx.fillStyle='#fff';ctx.font=`700 ${Math.max(9,Math.round(11/zoom))}px 'Syne',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    if(m.h>30/zoom)ctx.fillText(m.name,0,0);
+    ctx.restore();
+  });
+  // Muros
+  walls.forEach(w=>{
+    if(w.floorId!==activeFloor)return;
+    ctx.save();
+    const dx=w.x2-w.x1,dy=w.y2-w.y1,L=Math.hypot(dx,dy)||1;
+    const nx=-dy/L,ny=dx/L;
+    const t=Math.max(2,(w.thick||0.15)*40); // pixel thickness
+    ctx.fillStyle=isDark?'rgba(240,237,230,0.85)':'rgba(26,25,22,0.85)';
+    ctx.beginPath();
+    ctx.moveTo(w.x1+nx*t/2,w.y1+ny*t/2);
+    ctx.lineTo(w.x2+nx*t/2,w.y2+ny*t/2);
+    ctx.lineTo(w.x2-nx*t/2,w.y2-ny*t/2);
+    ctx.lineTo(w.x1-nx*t/2,w.y1-ny*t/2);
+    ctx.closePath();ctx.fill();
+    // Openings
+    openings.filter(o=>o.wallId===w.id).forEach(o=>{
+      const ox2=w.x1+(w.x2-w.x1)*o.t,oy2=w.y1+(w.y2-w.y1)*o.t;
+      const half=(o.kind==='door'?o.w*40:o.w*40)/2;
+      ctx.fillStyle=o.kind==='door'?'#a06a4a':'#5a9fd4';
+      ctx.fillRect(ox2-half,oy2-t/2,half*2,t);
+      ctx.strokeStyle=isDark?'#fff':'#000';ctx.lineWidth=0.6/zoom;
+      ctx.strokeRect(ox2-half,oy2-t/2,half*2,t);
+    });
+    ctx.restore();
+  });
+  // Wall in progress
+  if(tool==='wall'&&wallStart&&_lastWorld){
+    ctx.save();
+    ctx.strokeStyle=isDark?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.6)';
+    ctx.lineWidth=2/zoom;ctx.setLineDash([6/zoom,4/zoom]);
+    ctx.beginPath();ctx.moveTo(wallStart.x,wallStart.y);ctx.lineTo(_lastWorld.x,_lastWorld.y);ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
+  }
+  // Zone in progress
+  if(tool==='zone'&&zonePts.length>0){
+    ctx.save();
+    ctx.strokeStyle=isDark?'rgba(90,159,212,0.7)':'rgba(45,111,168,0.7)';
+    ctx.lineWidth=1.5/zoom;ctx.setLineDash([5/zoom,4/zoom]);
+    ctx.beginPath();ctx.moveTo(zonePts[0].x,zonePts[0].y);zonePts.forEach(p=>ctx.lineTo(p.x,p.y));
+    if(_lastWorld&&zonePts.length)ctx.lineTo(_lastWorld.x,_lastWorld.y);
+    ctx.stroke();ctx.setLineDash([]);
+    zonePts.forEach((p,i)=>{ctx.fillStyle=i===0?'var(--blue)':'rgba(0,0,0,0.4)';ctx.beginPath();ctx.arc(p.x,p.y,5/zoom,0,Math.PI*2);ctx.fill();});
+    ctx.restore();
+  }
+  // Module ghost (when placing)
+  if(tool==='mod'&&_moduleToPlace&&_lastWorld){
+    const rc=RC();const pxPerM=SZ()*100/rc;
+    const w=_moduleToPlace.w*pxPerM,h=_moduleToPlace.h*pxPerM;
+    ctx.save();
+    ctx.globalAlpha=0.5;
+    ctx.fillStyle=_moduleToPlace.c;
+    ctx.fillRect(_lastWorld.x-w/2,_lastWorld.y-h/2,w,h);
+    ctx.strokeStyle=_moduleToPlace.c;ctx.lineWidth=2/zoom;
+    ctx.strokeRect(_lastWorld.x-w/2,_lastWorld.y-h/2,w,h);
+    ctx.restore();
+  }
+}
+
+/* Hook al render principal: añadir capa de Diseño */
+const _origRender=render;
+window.render=function(){
+  _origRender();
+  if(mode==='design'){
+    ctx.save();
+    ctx.setTransform(zoom*DPR,0,0,zoom*DPR,panX*DPR,panY*DPR);
+    renderDesign();
+    ctx.restore();
+  }
+  // Always render structure & mesh & modules (visible regardless of mode)
+  if(structure.enabled||meshConf.enabled||modulesPlaced.length){
+    ctx.save();
+    ctx.setTransform(zoom*DPR,0,0,zoom*DPR,panX*DPR,panY*DPR);
+    if(structure.enabled)renderStructure();
+    if(meshConf.enabled)renderMesh();
+    if(mode!=='design'&&modulesPlaced.length)renderModulesOverDecomp();
+    ctx.restore();
+  }
+};
+
+function renderStructure(){
+  // Draw pillars at intersection of grid
+  const allPts=[];layers.forEach(l=>{const p=lPoly(l);if(p&&p.length>=3)allPts.push(...p);});
+  if(!allPts.length)return;
+  const bb=getBBox(allPts);
+  const dx=(bb.maxX-bb.minX)/structure.gridX,dy=(bb.maxY-bb.minY)/structure.gridY;
+  const ps=Math.max(8,structure.pillarSize*40);
+  ctx.fillStyle='rgba(180,80,30,0.85)';
+  ctx.strokeStyle=isDark?'#fff':'#000';ctx.lineWidth=0.8/zoom;
+  for(let i=0;i<=structure.gridX;i++)for(let j=0;j<=structure.gridY;j++){
+    const x=bb.minX+i*dx,y=bb.minY+j*dy;
+    // Only draw if inside any layer
+    const inside=layers.some(l=>l.visible&&ptInL(l,x,y));
+    if(!inside)continue;
+    ctx.fillRect(x-ps/2,y-ps/2,ps,ps);
+    ctx.strokeRect(x-ps/2,y-ps/2,ps,ps);
+  }
+  // Beams: lines between pillars
+  ctx.strokeStyle='rgba(180,80,30,0.6)';ctx.lineWidth=2/zoom;
+  for(let j=0;j<=structure.gridY;j++){
+    ctx.beginPath();
+    const y=bb.minY+j*dy;
+    ctx.moveTo(bb.minX,y);ctx.lineTo(bb.maxX,y);ctx.stroke();
+  }
+  for(let i=0;i<=structure.gridX;i++){
+    ctx.beginPath();
+    const x=bb.minX+i*dx;
+    ctx.moveTo(x,bb.minY);ctx.lineTo(x,bb.maxY);ctx.stroke();
+  }
+}
+
+function renderMesh(){
+  const allPts=[];layers.forEach(l=>{const p=lPoly(l);if(p&&p.length>=3)allPts.push(...p);});
+  if(!allPts.length)return;
+  const bb=getBBox(allPts);
+  const rc=RC(),S=SZ();
+  const sizePx=meshConf.size*100/rc*S; // m → px
+  ctx.strokeStyle='rgba(46,125,79,0.5)';ctx.lineWidth=1/zoom;
+  if(meshConf.kind==='square'){
+    for(let x=bb.minX;x<bb.maxX;x+=sizePx)for(let y=bb.minY;y<bb.maxY;y+=sizePx){
+      ctx.strokeRect(x,y,sizePx,sizePx);
+    }
+  } else {
+    // Hexagonal
+    const r=sizePx/2,h=r*Math.sqrt(3);
+    for(let row=0;bb.minY+row*h*0.75<bb.maxY+h;row++){
+      for(let col=0;bb.minX+col*r*1.5<bb.maxX+r;col++){
+        const cx=bb.minX+col*r*1.5;
+        const cy=bb.minY+row*h+(col%2?h/2:0);
+        ctx.beginPath();
+        for(let k=0;k<6;k++){const a=Math.PI/3*k;ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));}
+        ctx.closePath();ctx.stroke();
+      }
+    }
+  }
+}
+
+function renderModulesOverDecomp(){
+  // semi-transparent overlay of modules even in decomp mode
+  modulesPlaced.forEach(m=>{
+    if(m.floorId!==activeFloor)return;
+    ctx.save();
+    ctx.translate(m.x+m.w/2,m.y+m.h/2);
+    ctx.rotate(m.rot||0);
+    ctx.globalAlpha=0.55;
+    ctx.fillStyle=m.c;
+    ctx.fillRect(-m.w/2,-m.h/2,m.w,m.h);
+    ctx.strokeStyle=m.c;ctx.lineWidth=1.5/zoom;
+    ctx.strokeRect(-m.w/2,-m.h/2,m.w,m.h);
+    ctx.restore();
+  });
+}
+
+/* ═══ Estructura tab handlers ═══ */
+function onStructToggle(){structure.enabled=$('st-on').checked;render();updateStructInfo();}
+function onStructChange(){
+  structure.gridX=+$('st-gx').value;structure.gridY=+$('st-gy').value;
+  structure.pillarSize=+$('st-ps').value/100;
+  render();updateStructInfo();
+}
+function updateStructInfo(){
+  if(!structure.enabled){$('st-info').textContent='—';return;}
+  const allPts=[];layers.forEach(l=>{const p=lPoly(l);if(p&&p.length>=3)allPts.push(...p);});
+  if(!allPts.length){$('st-info').textContent='Dibuja una silueta primero';return;}
+  const bb=getBBox(allPts);const rc=RC(),S=SZ();
+  const dx=(bb.maxX-bb.minX)/structure.gridX,dy=(bb.maxY-bb.minY)/structure.gridY;
+  const dxM=dx/S*rc/100,dyM=dy/S*rc/100;
+  let pillars=0;
+  for(let i=0;i<=structure.gridX;i++)for(let j=0;j<=structure.gridY;j++){
+    const x=bb.minX+i*dx,y=bb.minY+j*dy;
+    if(layers.some(l=>l.visible&&ptInL(l,x,y)))pillars++;
+  }
+  $('st-info').innerHTML=`Pilares: ${pillars}<br>Vano X: ${dxM.toFixed(2)}m · Y: ${dyM.toFixed(2)}m<br>Sección pilar: ${(structure.pillarSize*100).toFixed(0)}×${(structure.pillarSize*100).toFixed(0)}cm`;
+}
+
+/* ═══ Malla tab handlers ═══ */
+function onMeshToggle(){meshConf.enabled=$('me-on').checked;render();updateMeshInfo();}
+function onMeshChange(){meshConf.kind=$('me-kind').value;meshConf.size=+$('me-size').value;render();updateMeshInfo();}
+function updateMeshInfo(){
+  $('me-info').textContent=meshConf.enabled?`${meshConf.kind} · ${meshConf.size}m`:'Off';
+}
+
+/* ═══ Módulos catálogo ═══ */
+function renderModuleCatalog(){
+  const filter=$('mod-filter')?.value||'all';
+  const cont=$('mod-catalog');if(!cont)return;cont.innerHTML='';
+  let list;
+  if(filter==='furn')list=EDRO_FURN;
+  else if(filter==='all')list=[...EDRO_MODS,...EDRO_FURN];
+  else list=[...EDRO_MODS,...EDRO_FURN].filter(m=>m.cat===filter);
+  list.forEach(m=>{
+    const c=document.createElement('div');c.className='modcard'+(_moduleToPlace===m?' on':'');
+    c.innerHTML=`<div class="modcard-mini" style="background:${m.c}"></div>
+      <div class="modcard-n">${escapeHtml(m.n||m.id)}</div>
+      <div class="modcard-d">${m.w}×${m.h}m</div>`;
+    c.onclick=()=>{
+      _moduleToPlace=(_moduleToPlace===m)?null:m;
+      setTool('mod');renderModuleCatalog();
+      setStatus(_moduleToPlace?'Toca el lienzo para colocar "'+m.n+'"':'Cancelado');
+    };
+    cont.appendChild(c);
+  });
+}
+function renderPlacedList(){
+  const el=$('mod-placed-list');if(!el)return;
+  $('mod-count').textContent=modulesPlaced.length;
+  el.innerHTML='';
+  modulesPlaced.forEach((m,i)=>{
+    const d=document.createElement('div');
+    d.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-bottom:0.5px solid var(--line);gap:8px';
+    d.innerHTML=`<span style="width:8px;height:8px;border-radius:50%;background:${m.c};flex-shrink:0"></span>
+      <span style="flex:1;font-size:11px;color:var(--txt)">${escapeHtml(m.name)}</span>
+      <span style="font-size:9px;color:var(--txt3)">${(m.w*RC()/SZ()/100).toFixed(1)}×${(m.h*RC()/SZ()/100).toFixed(1)}m</span>
+      <button class="tb red" style="height:24px;padding:0 8px;font-size:10px" data-i="${i}">✕</button>`;
+    d.querySelector('button').onclick=()=>{pushUndo();modulesPlaced.splice(i,1);renderPlacedList();render();};
+    el.appendChild(d);
+  });
+}
+
+/* ═══ Presupuesto ═══ */
+function updateBudget(){
+  const rate=+$('bud-rate').value||850;
+  const kgM2=+$('bud-kg').value||6.25;
+  const sKg=+$('bud-skg').value||2.5;
+  pricePerM2=rate;
+  const inBlk=new Set(jBlocks.flatMap(b=>b.cells.map(c=>c.r+','+c.c)));
+  const rc=RC();
+  let totalArea=0,nPcs=0,detail={};
+  jBlocks.forEach((b,i)=>{
+    const rs=b.cells.map(c=>c.r),cs=b.cells.map(c=>c.c);
+    const W=(Math.max(...cs)-Math.min(...cs)+1)*rc/100,H=(Math.max(...rs)-Math.min(...rs)+1)*rc/100;
+    const a=W*H;totalArea+=a;nPcs++;
+    const id='J'+(b.jType||b.cells.length);
+    detail[id]=detail[id]||{n:0,a:0};detail[id].n++;detail[id].a+=a;
+  });
+  cells.forEach(c=>{
+    if(c.m==='exc')return;if(inBlk.has(c.r+','+c.c))return;
+    const a=(c.m==='spc'?c.cov:1)*(rc*rc/10000);
+    totalArea+=a;nPcs++;
+    const id=c.m==='spc'?'Especial':'J1 (suelta)';
+    detail[id]=detail[id]||{n:0,a:0};detail[id].n++;detail[id].a+=a;
+  });
+  // Add modules area
+  modulesPlaced.forEach(m=>{
+    const wM=m.w*rc/SZ()/100,hM=m.h*rc/SZ()/100;
+    const a=wM*hM;
+    detail['Módulo: '+m.name]=detail['Módulo: '+m.name]||{n:0,a:0};
+    detail['Módulo: '+m.name].n++;detail['Módulo: '+m.name].a+=a;
+  });
+  const kg=totalArea*kgM2;
+  const eur=totalArea*rate;
+  const eurAcero=kg*sKg;
+  $('b-area').textContent=totalArea.toFixed(1);
+  $('b-pcs').textContent=nPcs;
+  $('b-kg').textContent=kg.toFixed(0);
+  $('b-eur').textContent=Math.round(eur).toLocaleString('es');
+  $('b-total').textContent=`Total: ${Math.round(eur).toLocaleString('es')} € · acero ≈ ${Math.round(eurAcero).toLocaleString('es')} €`;
+  // Detail
+  const dlines=Object.entries(detail).map(([k,v])=>`  ${k.padEnd(22,' ')} ${String(v.n).padStart(3,' ')} pcs · ${v.a.toFixed(2)} m²`);
+  $('b-detail').textContent=dlines.length?dlines.join('\n'):'Dibuja una silueta';
+}
+function exportBudgetTXT(){
+  const rate=+$('bud-rate').value||850;
+  const kgM2=+$('bud-kg').value||6.25;
+  const sKg=+$('bud-skg').value||2.5;
+  const inBlk=new Set(jBlocks.flatMap(b=>b.cells.map(c=>c.r+','+c.c)));
+  const rc=RC();
+  let totalArea=0,nPcs=0;
+  const detail=[];
+  jBlocks.forEach((b,i)=>{
+    const rs=b.cells.map(c=>c.r),cs=b.cells.map(c=>c.c);
+    const W=(Math.max(...cs)-Math.min(...cs)+1)*rc/100,H=(Math.max(...rs)-Math.min(...rs)+1)*rc/100;
+    totalArea+=W*H;nPcs++;
+    detail.push(`B${i+1}\tJ${b.jType||b.cells.length}\t${W.toFixed(2)}\t${H.toFixed(2)}\t${(W*H).toFixed(3)}\tEDRO standard`);
+  });
+  cells.forEach((c,i)=>{
+    if(c.m==='exc')return;if(inBlk.has(c.r+','+c.c))return;
+    const a=(c.m==='spc'?c.cov:1)*(rc*rc/10000);
+    totalArea+=a;nPcs++;
+    detail.push(`P${nPcs}\t${c.m==='spc'?'ESP':'STD'}\t${(rc/100).toFixed(2)}\t${(rc/100).toFixed(2)}\t${a.toFixed(3)}\t${c.m==='spc'?('cov '+Math.round(c.cov*100)+'%'):'-'}`);
+  });
+  const txt=[
+    `CUEVA CODE — INFORME DE PRESUPUESTO`,
+    `Fecha: ${new Date().toLocaleString('es')}`,
+    `Proyecto: ${$('proj-name')?.value||'(sin nombre)'}`,
+    `─────────────────────────────────────────`,
+    `Plantas: ${floors.length}  Capas: ${layers.length}`,
+    `Bloques J: ${jBlocks.length}  Piezas totales: ${nPcs}`,
+    `Área útil: ${totalArea.toFixed(2)} m²`,
+    `Acero estimado: ${(totalArea*kgM2).toFixed(0)} kg`,
+    `Coste estructura: ${(totalArea*kgM2*sKg).toLocaleString('es')} €`,
+    `Coste acabado (${rate} €/m²): ${(totalArea*rate).toLocaleString('es')} €`,
+    `TOTAL: ${(totalArea*rate+totalArea*kgM2*sKg).toLocaleString('es')} €`,
+    ``,
+    `─── DETALLE DE PIEZAS ───`,
+    `UID\tID\tLargo\tAncho\tÁrea\tNotas`,
+    ...detail
+  ].join('\n');
+  downloadFile(txt,'text/plain','presupuesto_cueva.txt');
+  setStatus('✓ Informe TXT descargado');
+}
+
+/* ═══ Algoritmo de despiece ═══ */
+function setAlgo(a){
+  algoMode=a;
+  const desc={
+    maxStandard:'Maximiza piezas J grandes (J10/J8/J6) — recomendado',
+    strips:'Tiras horizontales — útil para forjados largos',
+    balanced:'Equilibrado entre piezas grandes y pequeñas',
+    compact:'Compacto — minimiza huecos y bordes'
+  };
+  $('algo-desc').textContent=desc[a]||'';
+  // Apply: change which J types are tried first by setting jcols heuristic
+  // (Implementación simple: en J unification, el tipo activo determina el orden)
+  setStatus('Algoritmo: '+a);
+  updateAlgo();
+}
+
+/* ═══ Modo Generativo ═══ */
+function runGenerative(){
+  const tipo=$('gen-tipo').value,m2=+$('gen-m2').value,beds=+$('gen-beds').value,baths=+$('gen-baths').value,fls=+$('gen-floors').value;
+  pushUndo();
+  // Asegurar plantas
+  while(floors.length<fls){
+    const id='f'+Date.now()+Math.random();
+    const elev=floors.reduce((s,f)=>s+f.height,0);
+    floors.push({id,name:`Planta ${floors.length}`,elevation:elev,height:3});
+  }
+  renderFloors();renderFloorPicker();
+  // Capa rectangular según m²
+  const S=SZ(),rc=RC();const pxPerM=S*100/rc;
+  const aspect=tipo==='oficina'?1.4:1.2;
+  const widthM=Math.sqrt(m2*aspect),heightM=m2/widthM;
+  const w=widthM*pxPerM,h=heightM*pxPerM;
+  const ox=OX(),oy=OY();
+  const x0=ox+50,y0=oy+50;
+  const l=newLayer(`${tipo} ${m2}m²`,'floor');
+  l.pts=[{x:x0,y:y0},{x:x0+w,y:y0},{x:x0+w,y:y0+h},{x:x0,y:y0+h}];
+  l.closed=true;
+  layers.push(l);activeIdx=layers.length-1;
+  // Colocar módulos según tipología
+  modulesPlaced=modulesPlaced.filter(m=>m.floorId!==activeFloor);
+  let mx=x0+pxPerM*1,my=y0+pxPerM*1;
+  const place=(mod)=>{
+    if(!mod)return;
+    const mw=mod.w*pxPerM,mh=mod.h*pxPerM;
+    if(mx+mw>x0+w-pxPerM){mx=x0+pxPerM*1;my+=mh+pxPerM*0.5;}
+    modulesPlaced.push({id:'m'+Date.now()+Math.random(),name:mod.n,cat:mod.cat,x:mx,y:my,w:mw,h:mh,c:mod.c,rot:0,floorId:activeFloor});
+    mx+=mw+pxPerM*0.5;
+  };
+  if(tipo==='vivienda'){
+    place(EDRO_MODS.find(m=>m.n.includes('Salón'))||EDRO_MODS[14]);
+    place(EDRO_MODS.find(m=>m.n.includes('Cocina')));
+    for(let i=0;i<beds;i++)place(EDRO_MODS.find(m=>m.n.includes('Dorm.')));
+    for(let i=0;i<baths;i++)place(EDRO_MODS.find(m=>m.n.includes('Baño')));
+  } else if(tipo==='oficina'){
+    place({n:'Open Space',cat:'Oficina',w:widthM*0.6,h:heightM*0.5,c:'#6366f1'});
+    place(EDRO_MODS.find(m=>m.n.includes('Núcleo Baños')));
+    place({n:'Sala Reunión',cat:'Oficina',w:4.5,h:3,c:'#818cf8'});
+  } else if(tipo==='local'){
+    place({n:'Zona Ventas',cat:'Local',w:widthM*0.7,h:heightM*0.7,c:'#fbbf24'});
+    place(EDRO_MODS.find(m=>m.n.includes('Aseo')));
+  } else if(tipo==='residencial'){
+    const units=Math.max(2,Math.floor(m2/80));
+    for(let u=0;u<units;u++){
+      place({n:`Vivienda ${u+1}`,cat:'Vivienda',w:widthM/units,h:heightM*0.8,c:`hsl(${200+u*30},60%,55%)`});
+    }
+  }
+  recompute();renderLayerList();renderPlacedList();render();
+  $('gen-status').textContent=`✓ Generado · ${widthM.toFixed(1)}×${heightM.toFixed(1)}m · ${modulesPlaced.length} módulos`;
+  setStatus('✓ Capa generada · '+tipo);
+  fitToContent();
+}
+
+/* ═══ 3D Viewer (Canvas2D isométrico) ═══ */
+function render3D(){
+  const c=$('cv3d');if(!c)return;
+  const ctx3=c.getContext('2d');
+  const w=c.width,h=c.height;
+  ctx3.fillStyle=isDark?'#0a0a0a':'#f8f6f2';ctx3.fillRect(0,0,w,h);
+  // Get all layers' polys
+  const allPts=[];layers.forEach(l=>{const p=lPoly(l);if(p&&p.length>=3)allPts.push(...p);});
+  if(!allPts.length){
+    ctx3.fillStyle=isDark?'rgba(255,255,255,0.4)':'rgba(0,0,0,0.4)';ctx3.font='12px DM Mono,monospace';ctx3.textAlign='center';
+    ctx3.fillText('Sin geometría',w/2,h/2);return;
+  }
+  const bb=getBBox(allPts);
+  const totalH=+$('v3-h')?.value||3;
+  const v3Mode=$('v3-mode')?.value||'iso';
+  // Iso projection
+  const angle=Math.PI/6;
+  const cosA=Math.cos(angle),sinA=Math.sin(angle);
+  const project=(x,y,z)=>{
+    if(v3Mode==='top')return{x:x,y:y};
+    if(v3Mode==='front')return{x:x,y:-z};
+    return{x:(x-y)*cosA,y:(x+y)*sinA-z};
+  };
+  // Find scale
+  let pts=[];
+  layers.forEach((l,li)=>{
+    if(!l.visible)return;
+    const poly=lPoly(l);if(!poly||poly.length<3)return;
+    poly.forEach(p=>{
+      const f=floors.find(f=>f.id===l.floorId)||floors[0];
+      const z=f.elevation*40;
+      pts.push(project(p.x,p.y,z));
+      pts.push(project(p.x,p.y,z+(f.height||3)*40));
+    });
+  });
+  if(!pts.length)return;
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const pad=20;const sc=Math.min((w-pad*2)/(maxX-minX||1),(h-pad*2)/(maxY-minY||1));
+  const ox=pad-minX*sc,oy=pad-minY*sc;
+  const tr=p=>({x:p.x*sc+ox,y:p.y*sc+oy});
+  // Render layers (back to front by z descending)
+  const sorted=[...layers].filter(l=>l.visible&&lPoly(l)?.length>=3).map(l=>({l,f:floors.find(f=>f.id===l.floorId)||floors[0]}));
+  sorted.sort((a,b)=>(b.f.elevation+b.f.height)-(a.f.elevation+a.f.height));
+  sorted.forEach(({l,f})=>{
+    const poly=lPoly(l);
+    const z0=f.elevation*40,z1=z0+(f.height||3)*40;
+    // Walls (extruded sides)
+    ctx3.strokeStyle=l.color;ctx3.lineWidth=1;
+    for(let i=0;i<poly.length;i++){
+      const p=poly[i],q=poly[(i+1)%poly.length];
+      const a=tr(project(p.x,p.y,z0)),b=tr(project(q.x,q.y,z0)),cc=tr(project(q.x,q.y,z1)),d=tr(project(p.x,p.y,z1));
+      ctx3.fillStyle=l.color+'33';
+      ctx3.beginPath();ctx3.moveTo(a.x,a.y);ctx3.lineTo(b.x,b.y);ctx3.lineTo(cc.x,cc.y);ctx3.lineTo(d.x,d.y);ctx3.closePath();
+      ctx3.fill();ctx3.stroke();
+    }
+    // Top
+    ctx3.fillStyle=l.color+'66';
+    ctx3.beginPath();const p0=tr(project(poly[0].x,poly[0].y,z1));ctx3.moveTo(p0.x,p0.y);
+    poly.forEach(p=>{const t=tr(project(p.x,p.y,z1));ctx3.lineTo(t.x,t.y);});ctx3.closePath();ctx3.fill();
+    ctx3.strokeStyle=l.color;ctx3.lineWidth=1.5;ctx3.stroke();
+  });
+  // Modules as boxes
+  modulesPlaced.forEach(m=>{
+    const f=floors.find(f=>f.id===m.floorId)||floors[0];
+    const z0=f.elevation*40,z1=z0+(m.h>m.w?2.4:1.2)*40;
+    const corners=[
+      {x:m.x,y:m.y},{x:m.x+m.w,y:m.y},{x:m.x+m.w,y:m.y+m.h},{x:m.x,y:m.y+m.h}
+    ];
+    ctx3.fillStyle=m.c+'aa';ctx3.strokeStyle=m.c;ctx3.lineWidth=0.8;
+    const top=corners.map(c=>tr(project(c.x,c.y,z1)));
+    ctx3.beginPath();ctx3.moveTo(top[0].x,top[0].y);top.forEach(p=>ctx3.lineTo(p.x,p.y));ctx3.closePath();ctx3.fill();ctx3.stroke();
+  });
+}
+
+/* ═══ Manager Cueva (REST + JWT) ═══ */
+async function mgrCall(method,path,body){
+  const url=mgr.base+path;
+  const headers={'Content-Type':'application/json'};
+  if(mgr.token)headers.Authorization='Bearer '+mgr.token;
+  const res=await fetch(url,{method,headers,body:body?JSON.stringify(body):undefined});
+  if(!res.ok)throw new Error(`${method} ${path} → HTTP ${res.status}`);
+  return res.json();
+}
+async function mgrLogin(){
+  mgr.base=$('mg-url').value.trim().replace(/\/$/,'');
+  const email=$('mg-email').value,password=$('mg-pass').value;
+  if(!email||!password){$('mg-auth').textContent='Email y contraseña requeridos';return;}
+  $('mg-auth').innerHTML='<span class="spin"></span> Autenticando...';
+  try{
+    const r=await mgrCall('POST','/api/auth/login',{email,password});
+    mgr.token=r.token;localStorage.setItem('cueva-token',r.token);
+    $('mg-auth').textContent=`✓ Autenticado · ${r.user?.email||email}`;
+    $('mg-conn').textContent='Conectado';
+  }catch(e){$('mg-auth').textContent='✗ '+e.message;}
+}
+async function mgrCreateProject(){
+  if(!mgr.token){$('mg-proj-st').textContent='Autentícate primero';return;}
+  const name=$('mg-proj').value||'Proyecto Cueva',tipo=$('mg-tipo').value;
+  $('mg-proj-st').innerHTML='<span class="spin"></span> Creando...';
+  try{
+    // Partner: assume first existing or create a default
+    let partners=[];try{partners=await mgrCall('GET','/api/partners');}catch(e){}
+    let partnerId=partners[0]?.id;
+    if(!partnerId){
+      const p=await mgrCall('POST','/api/partners',{nombre:'Cueva default',rol:'ARQUITECTO'});
+      partnerId=p.id;
+    }
+    mgr.partnerId=partnerId;
+    const proj=await mgrCall('POST','/api/proyectos',{nombre:name,descripcion:'Generado desde Cueva Code iPad',partnerId,tipologia:tipo,nPlantas:floors.length,superficieTotal:0,fechaInicio:new Date().toISOString().slice(0,10),estado:'DISEÑO'});
+    mgr.projectId=proj.id;
+    const con=await mgrCall('POST','/api/construcciones',{proyectoId:proj.id,nombre:name+' · construcción 1',estado:'PLANIFICADA'});
+    mgr.construccionId=con.id;
+    $('mg-proj-st').textContent=`✓ proj #${proj.id} · construcción #${con.id}`;
+  }catch(e){$('mg-proj-st').textContent='✗ '+e.message;}
+}
+async function mgrSyncPieces(){
+  if(!mgr.token){$('mg-sync-st').textContent='Autentícate primero';return;}
+  if(!mgr.projectId){$('mg-sync-st').textContent='Crea un proyecto primero';return;}
+  const inBlk=new Set(jBlocks.flatMap(b=>b.cells.map(c=>c.r+','+c.c)));
+  const rc=RC();
+  const piezas=[];let n=0;
+  jBlocks.forEach((b,i)=>{
+    n++;const lyr=layers.find(l=>l.id===b.cells[0]?.lid)||layers[0];
+    const rs=b.cells.map(c=>c.r),cs=b.cells.map(c=>c.c);
+    const minR=Math.min(...rs),minC=Math.min(...cs);
+    const W=(Math.max(...cs)-minC+1)*rc/100,H=(Math.max(...rs)-minR+1)*rc/100;
+    piezas.push({
+      construccionId:mgr.construccionId,proyectoId:mgr.projectId,
+      codigo:`EDR-${String(n).padStart(4,'0')}`,nombre:`J${b.jType||b.cells.length}`,
+      categoria:'ESTANDAR',material:'acero_galvanizado',
+      uso:usoForLayer(lyr),planta:floors.find(f=>f.id===lyr?.floorId)?.name||'Planta 0',
+      largo:W,ancho:H,m2:+(W*H).toFixed(4),
+      kg_acero:+(W*H*6.25).toFixed(3),peso_total:+(W*H*6.25).toFixed(3),
+      es_pieza_borde:false,es_pieza_especial:false,
+      posicion_x:+(minC*rc/100).toFixed(3),posicion_y:+(minR*rc/100).toFixed(3),
+      rotacion:0,estado:'PENDIENTE_FABRICACION'
+    });
+  });
+  cells.forEach(c=>{
+    if(c.m==='exc')return;if(inBlk.has(c.r+','+c.c))return;
+    n++;const lyr=layers.find(l=>l.id===c.lid);
+    const cat=c.m==='spc'?'ESPECIAL':'ESTANDAR';
+    piezas.push({
+      construccionId:mgr.construccionId,proyectoId:mgr.projectId,
+      codigo:`EDR-${String(n).padStart(4,'0')}`,nombre:cat,
+      categoria:cat,material:'acero_galvanizado',
+      uso:usoForLayer(lyr),planta:floors.find(f=>f.id===lyr?.floorId)?.name||'Planta 0',
+      largo:rc/100,ancho:rc/100,m2:+(rc*rc/10000*(c.m==='spc'?c.cov:1)).toFixed(4),
+      kg_acero:+(rc*rc/10000*6.25*(c.m==='spc'?c.cov:1)).toFixed(3),
+      peso_total:+(rc*rc/10000*6.25*(c.m==='spc'?c.cov:1)).toFixed(3),
+      es_pieza_borde:c.m==='spc',es_pieza_especial:c.m==='spc',
+      posicion_x:+(c.c*rc/100).toFixed(3),posicion_y:+(c.r*rc/100).toFixed(3),
+      rotacion:0,estado:'PENDIENTE_FABRICACION'
+    });
+  });
+  $('mg-pcs-count').textContent=piezas.length;
+  $('mg-sync-st').innerHTML='<span class="spin"></span> Enviando '+piezas.length+' piezas...';
+  try{
+    const r=await mgrCall('POST','/api/piezas/bulk',piezas);
+    $('mg-sync-st').textContent=`✓ ${piezas.length} piezas sincronizadas`;
+  }catch(e){$('mg-sync-st').textContent='✗ '+e.message;}
+}
+function refreshMgrSheet(){
+  const inBlk=new Set(jBlocks.flatMap(b=>b.cells.map(c=>c.r+','+c.c)));
+  let n=jBlocks.length;
+  cells.forEach(c=>{if(c.m!=='exc'&&!inBlk.has(c.r+','+c.c))n++;});
+  $('mg-pcs-count').textContent=n;
+}
+
+/* ═══ AssistantPanel (chat-style, conectable) ═══ */
+function toggleAssist(){
+  const p=$('assist-panel');
+  if(p.style.display==='none'||!p.style.display){p.style.display='flex';chatGreet();}
+  else p.style.display='none';
+}
+function chatAdd(role,txt){
+  const log=$('chat-log');
+  const m=document.createElement('div');m.className='chat-msg '+role;m.textContent=txt;
+  log.appendChild(m);log.scrollTop=log.scrollHeight;
+}
+function chatGreet(){
+  if($('chat-log').children.length)return;
+  chatAdd('bot','Hola. Soy el asistente Cueva. Puedo ayudarte con: tipos J, normativa, estimar materiales, y consejos de patronaje. ¿Qué necesitas?');
+}
+function chatSend(){
+  const inp=$('chat-input');const q=inp.value.trim();if(!q)return;
+  chatAdd('user',q);inp.value='';
+  // Local (offline-friendly) heuristic responses
+  setTimeout(()=>{
+    const ql=q.toLowerCase();
+    let r='No tengo conexión a un modelo. Conecta este endpoint a tu backend Cueva con un POST /api/assistant.';
+    if(/j(\d+)/.test(ql)){
+      const m=ql.match(/j(\d+)/),id='J'+m[1];
+      const std=EDRO_STD.find(s=>s.id===id);
+      if(std)r=`${id}: ${std.w}×${std.h}m (${std.cw}×${std.ch} celdas de ${G_BASE}m). Color ${std.c}.`;
+    } else if(/(presup|cuant|coste|precio)/.test(ql)){
+      const a=parseFloat($('b-area').textContent)||0;const e=parseFloat($('b-eur').textContent.replace(/\./g,''))||0;
+      r=`Tu proyecto actual: ${a.toFixed(1)} m², coste estimado ${e.toLocaleString('es')} €. Ajusta €/m² en la pestaña Presupuesto.`;
+    } else if(/(planta|floor|forjado)/.test(ql)){
+      r=`Tienes ${floors.length} planta(s). Capa activa tipo: ${L()?.type||'—'}. Cambia tipo desde Proyecto → Tipo capa activa.`;
+    } else if(/(modul|cocin|baño|dorm|salon)/.test(ql)){
+      r=`Catálogo Edro: ${EDRO_MODS.length} módulos disponibles. Abre la pestaña Módulos, toca uno y luego el lienzo para colocarlo.`;
+    } else if(/(secuenc|montaj)/.test(ql)){
+      r=`7 secuencias disponibles: fila → / fila ← / columna ↓ / serpentín / espiral / base→arriba / centro→afuera. Configura en el rail izquierdo → Cuadrícula → Secuencia.`;
+    } else if(/(hola|hi|que tal)/.test(ql)){
+      r=`Hola. Aquí estoy para ayudarte con Cueva Code. Pregúntame por J1‑J10, módulos, presupuesto, o cómo usar una herramienta.`;
+    }
+    chatAdd('bot',r);
+  },300);
+}
+
+/* ═══ Hook tools nuevas: wall, zone, door, window, mod, del ═══ */
+const _origSetTool=setTool;
+window.setTool=function(t){
+  // Reset design states
+  if(t!=='wall')wallStart=null;
+  if(t!=='zone')zonePts=[];
+  // Update HUD for new tools
+  if(['wall','zone','door','window','mod','del'].includes(t)){
+    tool=t;
+    ['poly','rect','ell','pen','hole','edit','wall','zone','door','window','mod','del'].forEach(k=>{
+      const b=$('tb-'+k);if(b){b.classList.remove('on');if(k===t)b.classList.add('on');}
+      const b2=$('tb-edit2');if(b2)b2.classList.toggle('on',t==='edit');
+    });
+    const hints={
+      wall:'Toca inicio · toca fin para crear muro',
+      zone:'Toca para añadir vértices de zona · 2× toque cierra',
+      door:'Toca un muro para colocar puerta',
+      window:'Toca un muro para colocar ventana',
+      mod:'Selecciona un módulo (panel Módulos) y toca para colocar',
+      del:'Toca un muro / módulo / zona para eliminarlo'
+    };
+    setStatus(hints[t]||'');
+    $('sb-mode').textContent=t;
+    render();
+    return;
+  }
+  _origSetTool(t);
+};
+
+/* ═══ Hook pointer down: añadir tool design behavior ═══ */
+const _origPointerHandling=cv.onpointerdown; // not used; we extend handlers
+
+// Add wall/zone/door/window/mod/del behavior into pointerdown by intercepting
+// We'll add a separate listener that runs BEFORE the main one to handle design tools
+cv.addEventListener('pointerdown',e=>{
+  if(mode!=='design')return;
+  if(pointers.size>1)return; // gestures handled by main
+  const r=cv.getBoundingClientRect();
+  const sx=e.clientX-r.left,sy=e.clientY-r.top;
+  const w=toWorld(sx,sy);
+  const sp=snapWorld({x:w.x,y:w.y});
+  if(tool==='wall'){
+    if(!wallStart){wallStart=sp;setStatus('Toca el extremo del muro');render();}
+    else{placeWall(wallStart,sp);wallStart=null;setStatus('✓ Muro creado · siguiente inicio');}
+    e.preventDefault();e.stopPropagation();
+    return;
+  }
+  if(tool==='zone'){
+    // Double-tap close
+    const now=Date.now();
+    if(now-_lastTap<340&&zonePts.length>=3){placeZone(zonePts);zonePts=[];render();_lastTap=0;e.preventDefault();e.stopPropagation();return;}
+    _lastTap=now;
+    zonePts.push(sp);render();
+    e.preventDefault();e.stopPropagation();
+    return;
+  }
+  if(tool==='door'||tool==='window'){
+    const wall=findWallNear(w.x,w.y,18);
+    if(wall){
+      // Compute t parameter (projection)
+      const dx=wall.x2-wall.x1,dy=wall.y2-wall.y1,L2=dx*dx+dy*dy;
+      const t=Math.max(0.05,Math.min(0.95,((w.x-wall.x1)*dx+(w.y-wall.y1)*dy)/L2));
+      placeOpening(wall.id,t,tool);setStatus('✓ '+(tool==='door'?'Puerta':'Ventana')+' colocada');
+    } else setStatus('Toca un muro');
+    e.preventDefault();e.stopPropagation();
+    return;
+  }
+  if(tool==='mod'){
+    if(!_moduleToPlace){setStatus('Elige un módulo en la pestaña Módulos');return;}
+    placeModuleAt(w.x,w.y);
+    e.preventDefault();e.stopPropagation();
+    return;
+  }
+  if(tool==='del'){
+    deleteAt(w.x,w.y);
+    e.preventDefault();e.stopPropagation();
+    return;
+  }
+},true); // capture phase: fire BEFORE the main handler
+
+/* ═══ Patch showRTab para activar 3D, presupuesto, módulos al cambiar tab ═══ */
+const _origShowRTab=showRTab;
+window.showRTab=function(t){
+  ['seq','review','piece','algo','proj','struct','mesh','mods','budget','3d'].forEach(k=>{
+    const b=$('rt-'+k),body=$('rb-'+k);
+    if(b)b.classList.toggle('on',k===t);
+    if(body)body.hidden=(k!==t);
+  });
+  if(t==='review')buildReview();
+  if(t==='algo')updateAlgo();
+  if(t==='budget')updateBudget();
+  if(t==='mods')renderModuleCatalog();
+  if(t==='3d')render3D();
+  if(t==='struct')updateStructInfo();
+  if(t==='mesh')updateMeshInfo();
+  if(t==='proj'){renderFloors();}
+};
+
+/* ═══ Hook recompute para auto-refrescar dependientes ═══ */
+const _origRecompute=recompute;
+window.recompute=function(){
+  _origRecompute();
+  if(!$('rb-budget').hidden)updateBudget();
+  if(!$('rb-3d').hidden)render3D();
+  if(!$('rb-struct').hidden)updateStructInfo();
+  refreshMgrSheet();
+};
+
 /* ═══ INIT ═══ */
 function init(){
   // Detect system dark mode
   const prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
   if(prefersDark){isDark=true;document.body.classList.add('dark');$('tb-theme').innerHTML='<span class="tb-icon">☾</span>';}
 
+  // Default mode
+  document.body.classList.add('mode-decomp');
+
   layers.push(newLayer('Silueta 1','floor'));
   renderLayerList();
+  renderFloors();
+  renderFloorPicker();
+  renderModuleCatalog();
+  renderPlacedList();
+  updateBudget();
+
+  // Restore Manager token if exists
+  const savedToken=localStorage.getItem('cueva-token');
+  if(savedToken)mgr.token=savedToken;
+
   resize();
 
   // Try auto-load
