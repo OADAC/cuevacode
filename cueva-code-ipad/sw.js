@@ -2,7 +2,7 @@
    Cueva Code · Service Worker
    Cache-first app shell · stale-while-revalidate dynamic
 ═══════════════════════════════════════════════════════════════ */
-const VERSION = 'cueva-code-v7.1.0';
+const VERSION = 'cueva-code-v7.2.0';
 const STATIC_CACHE = `${VERSION}-static`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;
 
@@ -55,6 +55,16 @@ self.addEventListener('fetch', event => {
 
   // Google Fonts (CSS + WOFF): stale-while-revalidate
   if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
+    event.respondWith(staleWhileRevalidate(req));
+    return;
+  }
+
+  // esm.sh / unpkg / cdnjs / jsdelivr (Three.js + libs): stale-while-revalidate
+  if (
+    url.hostname === 'esm.sh' || url.hostname.endsWith('.esm.sh') ||
+    url.hostname === 'unpkg.com' || url.hostname === 'cdnjs.cloudflare.com' ||
+    url.hostname === 'cdn.jsdelivr.net'
+  ) {
     event.respondWith(staleWhileRevalidate(req));
     return;
   }
@@ -114,4 +124,3 @@ self.addEventListener('message', event => {
     caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
   }
 });
-
