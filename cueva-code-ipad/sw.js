@@ -2,7 +2,7 @@
    Cueva Code · Service Worker
    Cache-first app shell · stale-while-revalidate dynamic
 ═══════════════════════════════════════════════════════════════ */
-const VERSION = 'cueva-code-v7.3.0';
+const VERSION = 'cueva-code-v7.4.0';
 const STATIC_CACHE = `${VERSION}-static`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;
 
